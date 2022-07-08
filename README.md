@@ -1,7 +1,7 @@
 # ThreatAgentSelector
 
 The ThreatAgentSelector app is a web tool that automates the selection of threat agents in order to assess the system security and be aware of the risks.
-The tool is fully documanted in the paper:  
+The tool is fully documented in the paper:  
 [https://pdfs.semanticscholar.org/e53b/0284602dcf355cfb6b8f5aac6a4ac9959f10.pdf]
 
 The application is developed using the following technologies:

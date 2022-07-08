@@ -29,7 +29,7 @@ The application is developed using the following technologies:
 App available on: http://127.0.0.1:8000
 
 ##Docker available:
-*COMMANDS
+* COMMANDS
 * sudo docker build -t threatagentselector .
 * sudo docker run -dp 8001:8000 threatagentselector
 

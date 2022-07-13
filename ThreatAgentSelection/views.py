@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
-from .models import TAReplies_Question, TAReplyCategory, Reply, ThreatAgentQuestion, TACategoryAttribute
+from .models import TAReplies_Question, TAReplyCategory, Reply, ThreatAgentQuestion, TACategoryAttribute, \
+    ThreatAgentCategory
 
 
 @csrf_exempt
@@ -89,8 +90,21 @@ def threat_agent_generation(request):
 
     ThreatAgents = intersection(ThreatAgents, ThreatAgentsList)
     ThreatAgentsWithInfo = {}
+    motive=0
+    opportunity=0
+    size=0
+    skill=0
     for ta in ThreatAgents:
-        ThreatAgentsWithInfo[ta] = list(TACategoryAttribute.objects.filter(category=ta))
+        ThreatAgentsWithInfo[ta.category]={}
+        ThreatAgentsWithInfo[ta.category]['attributes'] = list(TACategoryAttribute.objects.filter(category=ta))
+        motive,opportunity,size,skill=calculate_threat_agent_risks(ta)
+        ThreatAgentsWithInfo[ta.category]['motive']=motive
+        ThreatAgentsWithInfo[ta.category]['opportunity']=opportunity
+        ThreatAgentsWithInfo[ta.category]['size']=size
+        ThreatAgentsWithInfo[ta.category]['skill']=skill
+        ThreatAgentsWithInfo[ta.category]['description']=ta.description
+        ThreatAgentsWithInfo[ta.category]['common_actions']=ta.common_actions
+    print(ThreatAgentsWithInfo)
     context = {'ThreatAgents': ThreatAgentsWithInfo}
     return render(request, 'threat_agent_generation.html', context=context)
 
@@ -103,4 +117,40 @@ def intersection(lst1, lst2):
 def union(lst1, lst2):
     lst3 = list(set(lst1 + lst2))
     return lst3
+
+
+def calculate_threat_agent_risks(ThreatAgent):
+    category=ThreatAgent.category
+    TACategory = ThreatAgentCategory.objects.get(category=category)
+    # per ogni categoria ottieni i Attribute relativi e calcola i 4 parametri owasp con le formule nella tesi.
+    TACategoryAttributes = TACategoryAttribute.objects.filter(category=TACategory)
+    limits = 0
+    intent = 0
+    access = 0
+    resources = 0
+    visibility = 0
+    skills = 0
+
+    # scorro gli attributi di category
+    for TACategoryAttributeVar in TACategoryAttributes:
+        if (TACategoryAttributeVar.attribute.attribute == 'Skills'):
+            skills = TACategoryAttributeVar.attribute.score
+        if (TACategoryAttributeVar.attribute.attribute == 'Resources'):
+            resources = TACategoryAttributeVar.attribute.score
+        if (TACategoryAttributeVar.attribute.attribute == 'Visibility'):
+            visibility = TACategoryAttributeVar.attribute.score
+        if (TACategoryAttributeVar.attribute.attribute == 'Limits'):
+            limits = TACategoryAttributeVar.attribute.score
+        if (TACategoryAttributeVar.attribute.attribute == 'Intent'):
+            intent = TACategoryAttributeVar.attribute.score
+        if (TACategoryAttributeVar.attribute.attribute == 'Access'):
+            access = TACategoryAttributeVar.attribute.score
+
+    OWASP_Motive = int(((((intent / 2) + (limits / 4)) / 2) * 10))
+    OWASP_Opportunity = int(((((access / 2) + (resources / 6) + (visibility / 4)) / 3) * 10))
+    OWASP_Size = int((resources / 6) * 10)
+    OWASP_Skill = int((skills / 4) * 10)
+    return OWASP_Motive,OWASP_Opportunity,OWASP_Size,OWASP_Skill
+
+
 

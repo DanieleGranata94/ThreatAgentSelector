@@ -2,6 +2,10 @@
 
 {% block content %}
 
+
+
+
+
 <style>
     table {
         font-family: arial, sans-serif;
@@ -18,12 +22,13 @@
 </style>
 
 <div class=container>
+    <form method="POST" action="{% url 'calculate_threat_agent_risks'%}">
     {% csrf_token %}
 
     <div class="container">
     <div class="panel panel-primary">
         <div class="panel-heading text-center">
-            <h4 class="panel-title pull-left" style="padding-top: 7.5px;">Categories result</h4>
+            <h4 class="panel-title pull-left" style="padding-top: 7.5px;"><b>Categories result</b></h4>
              <div class="pull-right">
                     <table border="2" style="width: 100%;">
              {% for Category,attributes in ThreatAgents.items %}
@@ -32,17 +37,17 @@
                 <br>
                 <td style="padding: 4px;" width="30%">
                     <h4><b>Category</b></h4>
-                    <h3 type="text" name={{Category.category}}> {{Category.category}} </h3>
+                    <h3 type="text" name={{Category}}> {{Category}} </h3>
 
                 </td>
 
                 <td  style="padding: 4px;" width="45%">
                     <h4><b>Description</b></h4>
-                     {{Category.description}}
+                     {{attributes.description}}
                     <h4><b>Threat Agent Common Actions</b></h4>
-                       {{Category.common_actions}}
+                       {{attributes.common_actions}}
                         <br>
-                    {% for attribute in attributes %}
+                    {% for attribute in attributes.attributes %}
                     <ul>
                         <li >
                              {{attribute.attribute.attribute}}: {{attribute.attribute.attribute_value}}
@@ -54,7 +59,19 @@
 
                 </td>
 
-
+                <td width="25%" >
+                    <b>OWASP Parameter</b>
+                    <br>
+                    <br>
+                    <div class="btn-group btn-toggle">
+                        <ul>
+                            <li>Motive: {{ attributes.motive }}</li>
+                            <li>Opportunity: {{ attributes.opportunity }}</li>
+                            <li>Size: {{ attributes.size }}</li>
+                            <li>Skill: {{ attributes.skill }}</li>
+                        </ul>
+                    </div>
+                </td>
             </tr>
             {%endfor%}
         </table>
@@ -65,6 +82,13 @@
     </div>
 </div>
 
+
+    <br>
+    <div style="text-align: center;">
+        <button style="text-align: center;" class="btn btn-primary">Submit Evaluation</button>
+    </div>
+
+        </form>
 
 </div>
 
@@ -123,4 +147,3 @@
     </script>
 
 {% endblock %}
-
